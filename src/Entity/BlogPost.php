@@ -39,7 +39,6 @@ class BlogPost
     /**
      * @ORM\Column(type="datetime")
      * @Assert\NotBlank()
-     * @Assert\DateTime()
      */
     private $published;
 
