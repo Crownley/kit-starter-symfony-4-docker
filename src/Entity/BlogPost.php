@@ -7,6 +7,8 @@ use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Security\Core\User\UserInterface;
+
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\BlogPostRepository")
@@ -25,7 +27,8 @@ use Symfony\Component\Validator\Constraints as Assert;
  *     }
  * )
  */
-class BlogPost
+class BlogPost implements AuthoredEntityInterface, PublishedDateEntityInterface
+
 {
     /**
      * @ORM\Id()
@@ -44,6 +47,7 @@ class BlogPost
     /**
      * @ORM\Column(type="datetime")
      * @Assert\NotBlank()
+     * @Assert\Type("\DateTimeInterface")
      */
     private $published;
 
@@ -103,7 +107,7 @@ class BlogPost
         return $this->published;
     }
 
-    public function setPublished(\DateTimeInterface $published): self
+    public function setPublished(\DateTimeInterface $published): PublishedDateEntityInterface
     {
         $this->published = $published;
 
@@ -140,9 +144,9 @@ class BlogPost
         return $this->author;
     }
     /**
-     * @param User $author
+     * @param UserInterface $author
      */
-    public function setAuthor(User $author): self
+    public function setAuthor(UserInterface $author): AuthoredEntityInterface
     {
         $this->author = $author;
 
