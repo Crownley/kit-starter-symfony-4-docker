@@ -14,7 +14,7 @@ use ApiPlatform\Core\Annotation\ApiSubresource;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\BlogPostRepository")
- * * @ApiResource(
+ * @ApiResource(
  *     itemOperations={
  *         "get"={
  *             "normalization_context"={

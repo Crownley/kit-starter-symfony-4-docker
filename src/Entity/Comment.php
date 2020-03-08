@@ -8,13 +8,21 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
-
 /**
-* @ApiResource(
-*     itemOperations={
+ * @ApiResource(
+ *     itemOperations={
+ *         "get",
+ *         "put"={
+ *             "access_control"="is_granted('IS_AUTHENTICATED_FULLY') and object.getAuthor() == user"
+ *         }
+ *     },
+ *     collectionOperations={
 *         "get",
-*         "put"={
-*             "access_control"="is_granted('IS_AUTHENTICATED_FULLY') and object.getAuthor() == user"
+*         "post"={
+*             "access_control"="is_granted('IS_AUTHENTICATED_FULLY')",
+*             "normalization_context"={
+*                 "groups"={"get-comment-with-author"}
+*             }
 *         }
 *     },
 *     subresourceOperations={
@@ -24,20 +32,12 @@ use Symfony\Component\Validator\Constraints as Assert;
 *             }
 *         }
 *     },
- *     collectionOperations={
- *         "get",
- *         "post"={
- *             "access_control"="is_granted('IS_AUTHENTICATED_FULLY')"
- *         },
- *         "api_blog_posts_comments_get_subresource"={
- *             "normalization_context"={
- *                 "groups"={"get-comment-with-author"}
- *             }
- *         }
- *     },
-* )
-* @ORM\Entity(repositoryClass="App\Repository\CommentRepository")
-*/
+ *     denormalizationContext={
+ *         "groups"={"post"}
+ *     }
+ * )
+ * @ORM\Entity(repositoryClass="App\Repository\CommentRepository")
+ */
 class Comment implements AuthoredEntityInterface, PublishedDateEntityInterface
 {
     /**
@@ -60,10 +60,9 @@ class Comment implements AuthoredEntityInterface, PublishedDateEntityInterface
      * @ORM\Column(type="datetime")
      * @Groups({"get-comment-with-author"})
      */
-    private $punlished;
+    private $published;
 
     /**
-     * 
      * @ORM\ManyToOne(targetEntity="App\Entity\User", inversedBy="comments")
      * @ORM\JoinColumn(nullable=false)
      * @Groups({"get-comment-with-author"})
@@ -96,12 +95,12 @@ class Comment implements AuthoredEntityInterface, PublishedDateEntityInterface
 
     public function getPublished(): ?\DateTimeInterface
     {
-        return $this->punlished;
+        return $this->published;
     }
 
-    public function setPublished(\DateTimeInterface $punlished): PublishedDateEntityInterface
+    public function setPublished(\DateTimeInterface $published): PublishedDateEntityInterface
     {
-        $this->punlished = $punlished;
+        $this->published = $published;
 
         return $this;
     }
