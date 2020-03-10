@@ -10,6 +10,8 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Security\Core\Validator\Constraints\UserPassword;
+use App\Controller\ResetPasswordAction;
 
 /**
  * @ApiResource(
@@ -27,6 +29,15 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  *             },
  *             "normalization_context"={
  *                 "groups"={"get"}
+ *             }
+ *         },
+ *         "put-reset-password"={
+ *             "access_control"="is_granted('IS_AUTHENTICATED_FULLY') and object == user",
+ *             "method"="PUT",
+ *             "path"="/users/{id}/reset-password",
+ *             "controller"=ResetPasswordAction::class,
+ *             "denormalization_context"={
+ *                 "groups"={"put-reset-password"}
  *             }
  *         }
  *     },
@@ -66,47 +77,76 @@ class User implements UserInterface
     /**
      * @ORM\Column(type="string", length=255)
      * @Groups({"get", "post", "get-comment-with-author", "get-blog-post-with-author"})
-     * @Assert\NotBlank()
-     * @Assert\Length(min=6, max=255)
+     * @Assert\NotBlank(groups={"post"})
+     * @Assert\Length(min=6, max=255, groups={"post"})
      */
     private $username;
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"put", "post"})
+     * @Groups({"post"})
+     * @Assert\NotBlank(groups={"post"})
+     * @Assert\Regex(
+     *     pattern="/(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9]).{7,}/",
+     *     message="Password must be seven characters long and contain at least one digit, one upper case letter and one lower case letter",
+     *     groups={"post"}
+     * )
+     */
+    private $password;
+
+    /**
+     * @Assert\NotBlank(groups={"post"})
+     * @Groups({"post"})
+
+     * @Assert\Expression(
+     *     "this.getPassword() === this.getRetypedPassword()",
+     *     message="Passwords does not match",
+     *      groups={"post"}
+     * )
+     */
+    private $retypedPassword;
+
+        /**
+     * @Groups({"put-reset-password"})
      * @Assert\NotBlank()
      * @Assert\Regex(
      *     pattern="/(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9]).{7,}/",
      *     message="Password must be seven characters long and contain at least one digit, one upper case letter and one lower case letter"
      * )
      */
-    private $password;
+    private $newPassword;
 
     /**
+     * @Groups({"put-reset-password"})
      * @Assert\NotBlank()
-     * @Groups({"put", "post"})
-
      * @Assert\Expression(
-     *     "this.getPassword() === this.getRetypedPassword()",
+     *     "this.getNewPassword() === this.getNewRetypedPassword()",
      *     message="Passwords does not match"
      * )
      */
-    private $retypedPassword;
+    private $newRetypedPassword;
+
+    /**
+     * @Groups({"put-reset-password"})
+     * @Assert\NotBlank()
+     * @UserPassword()
+     */
+    private $oldPassword;
 
     /**
      * @ORM\Column(type="string", length=255)
      * @Groups({"get", "post", "put", "get-comment-with-author", "get-blog-post-with-author" })
-     * @Assert\NotBlank()
-     * @Assert\Length(min=5, max=255)
+     * @Assert\NotBlank(groups={"post"})
+     * @Assert\Length(min=5, max=255, groups={"post", "put"})
      */
     private $name;
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Assert\NotBlank()
      * @Groups({"post", "put", "get-admin", "get-owner"})
-     * @Assert\Email()
-     * @Assert\Length(min=6, max=255)
+     * @Assert\NotBlank(groups={"post"})
+     * @Assert\Email(groups={"post", "put"})
+     * @Assert\Length(min=6, max=255, groups={"post", "put"})
      */
     private $email;
 
@@ -127,6 +167,11 @@ class User implements UserInterface
      * @Groups({"get-admin", "get-owner"})
      */
     private $roles;
+
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $passwordChangeDate;
 
     public function __construct()
     {
@@ -233,4 +278,45 @@ class User implements UserInterface
     {
 
     }
+
+    public function getNewPassword(): ?string
+    {
+        return $this->newPassword;
+    }
+
+    public function setNewPassword($newPassword): void
+    {
+        $this->newPassword = $newPassword;
+    }
+
+    public function getNewRetypedPassword(): ?string
+    {
+        return $this->newRetypedPassword;
+    }
+
+    public function setNewRetypedPassword($newRetypedPassword): void
+    {
+        $this->newRetypedPassword = $newRetypedPassword;
+    }
+
+    public function getOldPassword(): ?string
+    {
+        return $this->oldPassword;
+    }
+
+    public function setOldPassword($oldPassword): void
+    {
+        $this->oldPassword = $oldPassword;
+    }
+    
+    public function getPasswordChangeDate()
+    {
+        return $this->passwordChangeDate;
+    }
+
+    public function setPasswordChangeDate($passwordChangeDate): void
+    {
+        $this->passwordChangeDate = $passwordChangeDate;
+    }
+
 }
