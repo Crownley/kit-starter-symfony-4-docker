@@ -5,6 +5,8 @@ namespace App\Entity;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 use Vich\UploaderBundle\Mapping\Annotation as Vich;
+use Symfony\Component\Validator\Constraints as Assert;
+use App\Controller\UploadImageAction;
 
 /**
  * @ORM\Entity()
@@ -33,6 +35,7 @@ class Image
 
     /**
      * @Vich\UploadableField(mapping="images", fileNameProperty="url")
+     * @Assert\NotNull()
      */
     private $file;
 
@@ -58,7 +61,7 @@ class Image
 
     public function getUrl()
     {
-        return $this->url;
+        return '/images/' . $this->url;
     }
 
     public function setUrl($url): void
