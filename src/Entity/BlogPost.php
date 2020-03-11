@@ -10,10 +10,21 @@ use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
 use ApiPlatform\Core\Annotation\ApiSubresource;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Core\Annotation\ApiFilter;
 
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\BlogPostRepository")
+ *  @ApiFilter(
+ *     SearchFilter::class,
+ *     properties={
+ *         "id": "exact",
+ *         "title": "partial",
+ *         "content": "partial",
+ *          "author": "exact"
+ *     }
+ * )
  * @ApiResource(
  *     attributes={"order"={"published": "DESC"}},
  *     itemOperations={
