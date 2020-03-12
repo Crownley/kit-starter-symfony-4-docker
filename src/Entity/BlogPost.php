@@ -11,6 +11,10 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
 use ApiPlatform\Core\Annotation\ApiSubresource;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\DateFilter;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\RangeFilter;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\OrderFilter;
+use ApiPlatform\Core\Serializer\Filter\PropertyFilter;
 use ApiPlatform\Core\Annotation\ApiFilter;
 
 
@@ -22,17 +26,35 @@ use ApiPlatform\Core\Annotation\ApiFilter;
  *         "id": "exact",
  *         "title": "partial",
  *         "content": "partial",
- *          "author": "exact"
+ *          "author": "exact",
+ *          "author.name": "partial"
  *     }
  * )
+ * @ApiFilter(
+ *     DateFilter::class,
+ *     properties={
+ *         "published"
+ *     }
+ * )
+ * @ApiFilter(RangeFilter::class, properties={"id"})
+ * @ApiFilter(
+ *     OrderFilter::class,
+ *     properties={
+ *         "id",
+ *         "published",
+ *         "title"
+ *     },
+ *     arguments={"orderParameterName"="_order"}
+ * )
+ * @ApiFilter(PropertyFilter::class, arguments={
+ *     "parameterName": "properties",
+ *     "overrideDefaultProperties": false,
+ *     "whitelist": {"id", "slug", "title", "content", "author"}
+ * })
  * @ApiResource(
- *     attributes={"order"={"published": "DESC"}},
+ *     attributes={"order"={"published": "DESC"}, "maximum_items_per_page"=30, "pagination_partial"=true},
  *     itemOperations={
- *         "get"={
- *             "normalization_context"={
- *                 "groups"={"get-blog-post-with-author"}
- *             }
- *         },
+ *         "get",
  *         "put"={
  *             "access_control"="is_granted('ROLE_EDITOR') or (is_granted('ROLE_WRITER') and object.getAuthor() == user)"
  *         }
